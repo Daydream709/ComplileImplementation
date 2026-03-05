@@ -10,7 +10,7 @@ int CompoundStm::MaxArgs() const {
 
 Table *CompoundStm::Interp(Table *t) const {
     // TODO: put your code here (lab1).
-    stm1->Interp(t);
+    t = stm1->Interp(t);
     return stm2->Interp(t);
 }
 
