@@ -10,23 +10,29 @@ int CompoundStm::MaxArgs() const {
 
 Table *CompoundStm::Interp(Table *t) const {
     // TODO: put your code here (lab1).
+    stm1->Interp(t);
+    return stm2->Interp(t);
 }
 
 int AssignStm::MaxArgs() const {
     // TODO: put your code here (lab1).
+    return exp->MaxArgs();
 }
 
 Table *AssignStm::Interp(Table *t) const {
 
     // TODO: put your code here (lab1).
+    return t->Update(id, exp->InterpExp(t)->i);
 }
 
 int PrintStm::MaxArgs() const {
     // TODO: put your code here (lab1).
+    return exps->NumExps();
 }
 
 Table *PrintStm::Interp(Table *t) const {
     // TODO: put your code here (lab1).
+    return exps->Interp(t)->t;
 }
 
 int IdExp::MaxArgs() const {
