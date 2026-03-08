@@ -27,7 +27,7 @@ Table *AssignStm::Interp(Table *t) const {
 
 int PrintStm::MaxArgs() const {
     // TODO: put your code here (lab1).
-    return exps->NumExps();
+    return std::max(exps->NumExps(), exps->MaxArgs());
 }
 
 Table *PrintStm::Interp(Table *t) const {
