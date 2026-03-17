@@ -22,7 +22,8 @@ int AssignStm::MaxArgs() const {
 Table *AssignStm::Interp(Table *t) const {
 
     // TODO: put your code here (lab1).
-    return t->Update(id, exp->InterpExp(t)->i);
+    IntAndTable *expValue = exp->InterpExp(t);
+    return expValue->t->Update(id, expValue->i);
 }
 
 int PrintStm::MaxArgs() const {
