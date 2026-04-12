@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <string>
 #include <list>
+#include <string>
 
 namespace A {
 
@@ -19,82 +19,80 @@ class Table;
 class IntAndTable;
 
 class Stm {
- public:
-  virtual int MaxArgs() const = 0;
-  virtual Table *Interp(Table *) const = 0;
+  public:
+    virtual int MaxArgs() const = 0;
+    virtual Table *Interp(Table *) const = 0;
 };
 
 class CompoundStm : public Stm {
- public:
-  CompoundStm(Stm *stm1, Stm *stm2) : stm1(stm1), stm2(stm2) {}
-  int MaxArgs() const override;
-  Table *Interp(Table *) const override;
+  public:
+    CompoundStm(Stm *stm1, Stm *stm2) : stm1(stm1), stm2(stm2) {}
+    int MaxArgs() const override;
+    Table *Interp(Table *) const override;
 
- private:
-  Stm *stm1, *stm2;
+  private:
+    Stm *stm1, *stm2;
 };
 
 class AssignStm : public Stm {
- public:
-  AssignStm(std::string id, Exp *exp) : id(std::move(id)), exp(exp) {}
-  int MaxArgs() const override;
-  Table *Interp(Table *) const override;
+  public:
+    AssignStm(std::string id, Exp *exp) : id(std::move(id)), exp(exp) {}
+    int MaxArgs() const override;
+    Table *Interp(Table *) const override;
 
- private:
-  std::string id;
-  Exp *exp;
+  private:
+    std::string id;
+    Exp *exp;
 };
 
 class PrintStm : public Stm {
- public:
-  explicit PrintStm(ExpList *exps) : exps(exps) {}
-  int MaxArgs() const override;
-  Table *Interp(Table *) const override;
+  public:
+    explicit PrintStm(ExpList *exps) : exps(exps) {}
+    int MaxArgs() const override;
+    Table *Interp(Table *) const override;
 
- private:
-  ExpList *exps;
+  private:
+    ExpList *exps;
 };
 
 class Exp {
 
   public:
-    // TODO: you'll have to add some definitions here (lab1).
-    // Hints: You may add interfaces like `int MaxArgs()`,
-    //        and ` IntAndTable *Interp(Table *)`
-    virtual int MaxArgs() const=0;
-    virtual IntAndTable *InterpExp(Table *) const=0;
+    virtual int MaxArgs() const = 0;
+    virtual IntAndTable *InterpExp(Table *) const = 0; // 表达式解释函数
 };
 
 class IdExp : public Exp {
- public:
-  explicit IdExp(std::string id) : id(std::move(id)) {}
-  // TODO: you'll have to add some definitions here (lab1).
-  int MaxArgs() const override;
-  IntAndTable *InterpExp(Table *) const override;
-  
- private:
-  std::string id;
+  public:
+    explicit IdExp(std::string id) : id(std::move(id)) {}
+    // TODO: you'll have to add some definitions here (lab1).
+    int MaxArgs() const override;
+    IntAndTable *InterpExp(Table *) const override;
+
+  private:
+    std::string id;
 };
 
 class NumExp : public Exp {
- public:
-  explicit NumExp(int num) : num(num) {}
-  // TODO: you'll have to add some definitions here.
-  int MaxArgs() const override;
-  IntAndTable *InterpExp(Table *) const override;
-  
- private:
-  int num;
+  public:
+    explicit NumExp(int num) : num(num) {}
+    // TODO: you'll have to add some definitions here.
+    int MaxArgs() const override;
+    IntAndTable *InterpExp(Table *) const override;
+
+  private:
+    int num;
 };
 
 class OpExp : public Exp {
- public:
+  public:
     OpExp(Exp *left, BinOp oper, Exp *right)
         : left(left), oper(oper), right(right) {}
     // TODO: you'll have to add some definitions here.
     int MaxArgs() const override;
     IntAndTable *InterpExp(Table *) const override;
- private:
+
+  private:
     Exp *left;
     BinOp oper;
     Exp *right;
@@ -106,66 +104,67 @@ class EseqExp : public Exp {
     // TODO: you'll have to add some definitions here.
     int MaxArgs() const override;
     IntAndTable *InterpExp(Table *) const override;
+
   private:
     Stm *stm;
     Exp *exp;
 };
 
 class ExpList {
- public:
-  // TODO: you'll have to add some definitions here (lab1).
-  // Hints: You may add interfaces like `int MaxArgs()`, `int NumExps()`,
-  //        and ` IntAndTable *Interp(Table *)`
-  virtual int MaxArgs() const=0;
-  virtual int NumExps() const=0;
-  virtual IntAndTable *Interp(Table *) const=0;
+  public:
+    // TODO: you'll have to add some definitions here (lab1).
+    // Hints: You may add interfaces like `int MaxArgs()`, `int NumExps()`,
+    //        and ` IntAndTable *Interp(Table *)`
+    virtual int MaxArgs() const = 0;
+    virtual int NumExps() const = 0;
+    virtual IntAndTable *Interp(Table *) const = 0;
 };
 
 class PairExpList : public ExpList {
- public:
-  PairExpList(Exp *exp, ExpList *tail) : exp(exp), tail(tail) {}
-  // TODO: you'll have to add some definitions here (lab1).
-  int MaxArgs() const override;
-  int NumExps() const override;
-  IntAndTable *Interp(Table *) const override;
+  public:
+    PairExpList(Exp *exp, ExpList *tail) : exp(exp), tail(tail) {}
+    // TODO: you'll have to add some definitions here (lab1).
+    int MaxArgs() const override;
+    int NumExps() const override;
+    IntAndTable *Interp(Table *) const override;
 
- private:
-  Exp *exp;
-  ExpList *tail;
+  private:
+    Exp *exp;
+    ExpList *tail;
 };
 
 class LastExpList : public ExpList {
- public:
-  LastExpList(Exp *exp) : exp(exp) {}
-  // TODO: you'll have to add some definitions here (lab1).
-  int MaxArgs() const override;
-  int NumExps() const override;
-  IntAndTable *Interp(Table *) const override;
-  
- private:
-  Exp *exp;
+  public:
+    LastExpList(Exp *exp) : exp(exp) {}
+    // TODO: you'll have to add some definitions here (lab1).
+    int MaxArgs() const override;
+    int NumExps() const override;
+    IntAndTable *Interp(Table *) const override;
+
+  private:
+    Exp *exp;
 };
 
 class Table {
- public:
-  Table(std::string id, int value, const Table *tail)
-      : id(std::move(id)), value(value), tail(tail) {}
-  int Lookup(const std::string &key) const;
-  Table *Update(const std::string &key, int val) const;
+  public:
+    Table(std::string id, int value, const Table *tail)
+        : id(std::move(id)), value(value), tail(tail) {}
+    int Lookup(const std::string &key) const;
+    Table *Update(const std::string &key, int val) const;
 
- private:
-  std::string id;
-  int value;
-  const Table *tail;
+  private:
+    std::string id;
+    int value;
+    const Table *tail;
 };
 
 struct IntAndTable {
-  int i;
-  Table *t;
+    int i;
+    Table *t;
 
-  IntAndTable(int i, Table *t) : i(i), t(t) {}
+    IntAndTable(int i, Table *t) : i(i), t(t) {}
 };
 
-}  // namespace A
+} // namespace A
 
-#endif  // STRAIGHTLINE_SLP_H_
+#endif // STRAIGHTLINE_SLP_H_
