@@ -33,8 +33,7 @@
 %token
   COMMA COLON SEMICOLON LPAREN RPAREN LBRACK RBRACK
   LBRACE RBRACE DOT
-  ASSIGN
-  ARRAY IF THEN ELSE WHILE FOR TO DO LET IN END OF
+  ARRAY IF WHILE FOR TO DO LET IN END OF
   BREAK NIL
   FUNCTION VAR TYPE
 
@@ -51,9 +50,9 @@
 %nonassoc UMINUS
 
 
-%type <exp> exp expseq opexp ifexp whileexp callexp recordexp
+%type <exp> exp expseq ifexp whileexp callexp recordexp
 %type <explist> actuals nonemptyactuals sequencing sequencing_exps
-%type <var> lvalue one oneormore
+%type <var> lvalue
 %type <declist> decs decs_nonempty
 %type <dec> decs_nonempty_s vardec
 %type <efieldlist> rec rec_nonempty
@@ -72,8 +71,7 @@
 program:  exp  {absyn_tree_ = std::make_unique<absyn::AbsynTree>($1);};
 
 exp:
-    opexp
-  | lvalue {
+    lvalue {
       $$ = new absyn::VarExp(scanner_.GetTokPos(), $1);
     }
   | NIL {
@@ -115,10 +113,7 @@ exp:
       $$ = new absyn::OpExp(scanner_.GetTokPos(), absyn::Oper::MINUS_OP,
                             new absyn::IntExp(scanner_.GetTokPos(), 0), $2);
     }
-  ;
-
-opexp:
-    exp PLUS exp {
+  | exp PLUS exp {
       $$ = new absyn::OpExp(scanner_.GetTokPos(), absyn::Oper::PLUS_OP, $1, $3);
     }
   | exp MINUS exp {
@@ -184,8 +179,11 @@ recordexp:
   ;
 
 expseq:
-    sequencing_exps {
-      $$ = new absyn::SeqExp(scanner_.GetTokPos(), $1);
+    exp {
+      $$ = $1;
+    }
+  | exp SEMICOLON sequencing_exps {
+      $$ = new absyn::SeqExp(scanner_.GetTokPos(), $3->Prepend($1));
     }
   ;
 
@@ -222,25 +220,17 @@ sequencing_exps:
   ;
 
 lvalue:
-    oneormore {
-      $$ = $1;
-    }
-  ;
-
-one:
     ID {
       $$ = new absyn::SimpleVar(scanner_.GetTokPos(), $1);
     }
-  ;
-
-oneormore:
-    one {
-      $$ = $1;
-    }
-  | oneormore DOT ID {
+  | lvalue DOT ID {
       $$ = new absyn::FieldVar(scanner_.GetTokPos(), $1, $3);
     }
-  | oneormore LBRACK exp RBRACK {
+  | ID LBRACK exp RBRACK {
+      auto base = new absyn::SimpleVar(scanner_.GetTokPos(), $1);
+      $$ = new absyn::SubscriptVar(scanner_.GetTokPos(), base, $3);
+    }
+  | lvalue LBRACK exp RBRACK {
       $$ = new absyn::SubscriptVar(scanner_.GetTokPos(), $1, $3);
     }
   ;
