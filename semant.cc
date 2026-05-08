@@ -83,6 +83,7 @@ type::Ty *CallExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
   }
   env::FunEntry *fun_entry = static_cast<env::FunEntry *>(entry);
 
+  // 先检查参数数量是否匹配
   size_t formal_count = fun_entry->formals_->GetList().size();
   size_t arg_count = args_->GetList().size();
 
@@ -94,6 +95,7 @@ type::Ty *CallExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
                     func_->Name().data());
   }
 
+  // 然后检查参数类型匹配
   auto formal_it = fun_entry->formals_->GetList().begin();
   auto arg_it = args_->GetList().begin();
   while (formal_it != fun_entry->formals_->GetList().end() &&
@@ -378,11 +380,13 @@ void TypeDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv, int labelcount,
     type::Ty *cur = ty;
     bool has_cycle = false;
 
+    // 使用Floyd判圈算法检测类型循环
     if (cur != nullptr && typeid(*cur) == typeid(type::NameTy)) {
       type::Ty *tortoise = cur;
       type::Ty *hare = cur;
 
       while (hare != nullptr && typeid(*hare) == typeid(type::NameTy)) {
+        // hare移动两步
         type::NameTy *hare_name_ty = static_cast<type::NameTy *>(hare);
         hare = hare_name_ty->ty_;
         if (hare != nullptr && typeid(*hare) == typeid(type::NameTy)) {
@@ -392,6 +396,7 @@ void TypeDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv, int labelcount,
           break;
         }
 
+        // tortoise移动一步
         if (tortoise != nullptr && typeid(*tortoise) == typeid(type::NameTy)) {
           type::NameTy *tort_name_ty = static_cast<type::NameTy *>(tortoise);
           tortoise = tort_name_ty->ty_;
@@ -399,6 +404,7 @@ void TypeDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv, int labelcount,
           break;
         }
 
+        // 检查是否相遇
         if (tortoise == hare && tortoise != nullptr) {
           has_cycle = true;
           break;
