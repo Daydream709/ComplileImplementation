@@ -61,10 +61,12 @@ private:
   void print();
   void preCode();
   void postCode(PostEnum_ type);
+  void postCode(PostEnum_ type);
   void adjust();
   void adjustStr();
 };
 
+inline int Scanner::lex() { return lex_(); }
 inline int Scanner::lex() { return lex_(); }
 
 inline void Scanner::preCode() {
@@ -72,9 +74,11 @@ inline void Scanner::preCode() {
 }
 
 inline void Scanner::postCode(PostEnum_ type) {
+inline void Scanner::postCode(PostEnum_ type) {
   // Optionally replace by your own code
 }
 
+inline void Scanner::print() { print_(); }
 inline void Scanner::print() { print_(); }
 
 inline void Scanner::adjust() {

@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     printf("NestNestProgProg\n");
     args = NestNestProgProg()->MaxArgs();
     printf("args: %d\n", args);
-    NestNestProgProg()->Interp(nullptr);  
+    NestNestProgProg()->Interp(nullptr);
     break;
   default:
     printf("unexpected case\n");
