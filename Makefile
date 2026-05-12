@@ -51,7 +51,7 @@ ziplab3:
 	zip -j lab3-answer.zip src/tiger/parse/tiger.y src/tiger/lex/tiger.lex src/tiger/lex/scanner.h
 
 ziplab4:
-	zip -j lab4-answer.zip src/tiger/semant/semant.cc
+	zip -j lab4-answer.zip src/tiger/semant/semant.cc src/tiger/parse/tiger.y src/tiger/lex/tiger.lex src/tiger/lex/scanner.h src/tiger/semant/semant.h
 
 ziplab5-1:
 	zip -r lab5-1_answer.zip src/
