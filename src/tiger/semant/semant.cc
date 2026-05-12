@@ -1,4 +1,5 @@
 #include "tiger/semant/semant.h"
+#include <set>
 #include "tiger/absyn/absyn.h"
 
 namespace absyn {
@@ -308,10 +309,12 @@ type::Ty *AssignExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
 void FunctionDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
                              int labelcount, err::ErrorMsg *errormsg) const {
   /* TODO: Put your lab4 code here */
-  for (FunDec *fun_dec : functions_->GetList()) {
-    if (venv->Look(fun_dec->name_)) {
-      errormsg->Error(fun_dec->pos_, "two functions have the same name");
-    }
+    std::set<std::string> seen_names;
+    for (FunDec *fun_dec : functions_->GetList()) {
+      if (seen_names.count(fun_dec->name_->Name())) {
+        errormsg->Error(fun_dec->pos_, "two functions have the same name");
+      }
+      seen_names.insert(fun_dec->name_->Name());
     type::TyList *formal_tys = new type::TyList();
     for (Field *field : fun_dec->params_->GetList()) {
       type::Ty *ty = tenv->Look(field->typ_);
@@ -381,10 +384,12 @@ void VarDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv, int labelcount,
 void TypeDec::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv, int labelcount,
                          err::ErrorMsg *errormsg) const {
   /* TODO: Put your lab4 code here */
-  for (NameAndTy *name_and_ty : types_->GetList()) {
-    if (tenv->Look(name_and_ty->name_)) {
-      errormsg->Error(pos_, "two types have the same name");
-    }
+    std::set<std::string> seen_names;
+    for (NameAndTy *name_and_ty : types_->GetList()) {
+      if (seen_names.count(name_and_ty->name_->Name())) {
+        errormsg->Error(pos_, "two types have the same name");
+      }
+      seen_names.insert(name_and_ty->name_->Name());
     tenv->Enter(name_and_ty->name_,
                 new type::NameTy(name_and_ty->name_, nullptr));
   }
