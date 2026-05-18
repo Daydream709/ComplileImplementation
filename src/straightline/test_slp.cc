@@ -32,7 +32,19 @@ int main(int argc, char **argv) {
     printf("Prog\n");
     args = Prog()->MaxArgs();
     printf("args: %d\n", args);
-    Prog()->Interp(nullptr);
+    NestProg()->Interp(nullptr);
+    break;
+  case CASE_I:
+    printf("NestNestProg\n");
+    args = NestNestProg()->MaxArgs();
+    printf("args: %d\n", args);
+    NestNestProg()->Interp(nullptr);
+    break;
+  case CASE_J:
+    printf("NestNestProgProg\n");
+    args = NestNestProgProg()->MaxArgs();
+    printf("args: %d\n", args);
+    NestNestProgProg()->Interp(nullptr);
     break;
   default:
     printf("unexpected case\n");
