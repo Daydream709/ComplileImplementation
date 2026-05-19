@@ -360,7 +360,7 @@ public:
   bool escape_;
 
   ForExp(int pos, sym::Symbol *var, Exp *lo, Exp *hi, Exp *body)
-      : Exp(pos), var_(var), lo_(lo), hi_(hi), body_(body), escape_(false) {}
+      : Exp(pos), var_(var), lo_(lo), hi_(hi), body_(body), escape_(true) {}
   ~ForExp() override;
 
   void Print(FILE *out, int d) const override;
@@ -481,7 +481,7 @@ public:
   bool escape_;
 
   VarDec(int pos, sym::Symbol *var, sym::Symbol *typ, Exp *init)
-      : Dec(pos), var_(var), typ_(typ), init_(init), escape_(false) {}
+      : Dec(pos), var_(var), typ_(typ), init_(init), escape_(true) {}
   ~VarDec() override;
 
   void Print(FILE *out, int d) const override;

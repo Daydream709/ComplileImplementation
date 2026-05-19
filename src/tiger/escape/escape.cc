@@ -99,6 +99,7 @@ void ForExp::Traverse(esc::EscEnvPtr env, int depth) {
   lo_->Traverse(env, depth);
   hi_->Traverse(env, depth);
   env->BeginScope();
+  escape_ = false;
   env->Enter(var_, new esc::EscapeEntry(depth, &escape_));
   body_->Traverse(env, depth);
   env->EndScope();
@@ -144,6 +145,7 @@ void FunctionDec::Traverse(esc::EscEnvPtr env, int depth) {
 void VarDec::Traverse(esc::EscEnvPtr env, int depth) {
   /* TODO: Put your lab5 code here */
   init_->Traverse(env, depth);
+  escape_ = false;
   env->Enter(var_, new esc::EscapeEntry(depth, &escape_));
 }
 
