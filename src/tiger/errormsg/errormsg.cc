@@ -28,7 +28,7 @@ void ErrorMsg::Error(int pos, std::string_view message, ...) {
   if (!file_name_.empty())
     fprintf(stderr, "%s:", file_name_.data());
   if (val != -1)
-    fprintf(stderr, "%d.%d: ", num, pos - val);
+    fprintf(stderr, "%d.%d:", num, pos - val);
   va_start(ap, message);
   vfprintf(stderr, message.data(), ap);
   va_end(ap);
