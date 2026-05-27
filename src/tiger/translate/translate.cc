@@ -62,13 +62,12 @@ public:
   }
   [[nodiscard]] Cx UnCx(err::ErrorMsg *errormsg) const override {
     /* TODO: Put your lab5 code here */
-    temp::Label *t = temp::LabelFactory::NewLabel();
-    temp::Label *f = temp::LabelFactory::NewLabel();
-    tr::PatchList trues = tr::PatchList({&t});
-    tr::PatchList falses = tr::PatchList({&f});
-    tree::Stm *stm = new tree::CjumpStm(
-        tree::NE_OP, exp_, new tree::ConstExp(0), t, f);
-    return Cx(trues, falses, stm);
+    tree::CjumpStm *cjump = new tree::CjumpStm(
+        tree::NE_OP, exp_, new tree::ConstExp(0),
+        temp::LabelFactory::NewLabel(), temp::LabelFactory::NewLabel());
+    tr::PatchList trues = tr::PatchList({&cjump->true_label_});
+    tr::PatchList falses = tr::PatchList({&cjump->false_label_});
+    return Cx(trues, falses, cjump);
   }
 };
 
@@ -87,12 +86,11 @@ public:
     return stm_; }
   [[nodiscard]] Cx UnCx(err::ErrorMsg *errormsg) const override {
     /* TODO: Put your lab5 code here */
-    temp::Label *t = temp::LabelFactory::NewLabel();
-    temp::Label *f = temp::LabelFactory::NewLabel();
+    tree::NameExp *name_exp = new tree::NameExp(temp::LabelFactory::NewLabel());
+    auto *targets = new std::vector<temp::Label *>({name_exp->name_});
+    tree::Stm *stm = new tree::SeqStm(stm_, new tree::JumpStm(name_exp, targets));
     tr::PatchList trues = tr::PatchList();
-    tr::PatchList falses = tr::PatchList({&f});
-    tree::Stm *stm = new tree::SeqStm(stm_, new tree::JumpStm(
-        new tree::NameExp(f), new std::vector<temp::Label *>({f})));
+    tr::PatchList falses = tr::PatchList({&name_exp->name_});
     return Cx(trues, falses, stm);
   }
 };
@@ -358,7 +356,7 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
     auto *args = new tree::ExpList();
     args->Append(left_exp);
     args->Append(right_exp);
-    tree::Exp *call = frame::ExternalCall("stringEqual", args);
+    tree::Exp *call = frame::ExternalCall("string_equal", args);
     if (oper_ == absyn::EQ_OP) {
       return new tr::ExpAndTy(new tr::ExExp(call), type::IntTy::Instance());
     } else if (oper_ == absyn::NEQ_OP) {
@@ -369,12 +367,11 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
     }
   }
 
-  temp::Label *t = temp::LabelFactory::NewLabel();
-  temp::Label *f = temp::LabelFactory::NewLabel();
-  tr::PatchList trues = tr::PatchList({&t});
-  tr::PatchList falses = tr::PatchList({&f});
-  tree::Stm *stm = new tree::CjumpStm(relop, left_exp, right_exp, t, f);
-  return new tr::ExpAndTy(new tr::CxExp(trues, falses, stm),
+  tree::CjumpStm *cjump = new tree::CjumpStm(relop, left_exp, right_exp,
+      temp::LabelFactory::NewLabel(), temp::LabelFactory::NewLabel());
+  tr::PatchList trues = tr::PatchList({&cjump->true_label_});
+  tr::PatchList falses = tr::PatchList({&cjump->false_label_});
+  return new tr::ExpAndTy(new tr::CxExp(trues, falses, cjump),
                           type::IntTy::Instance());
 }
 

@@ -152,6 +152,7 @@ private:
 Frame *NewFrame(temp::Label *name, std::list<bool> formals);
 tree::Exp *ExternalCall(std::string_view s, tree::ExpList *args);
 tree::Stm *ProcEntryExit1(Frame *frame, tree::Stm *stm);
+assem::Proc *ProcEntryExit3(Frame *frame, assem::InstrList *body);
 /* End for lab5 code */
 
 } // namespace frame

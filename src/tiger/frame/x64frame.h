@@ -4,9 +4,30 @@
 #include "tiger/frame/frame.h"
 
 namespace frame {
-class X64RegManager : public RegManager {
-  /* TODO: Put your lab5 code here */
 
+// x86-64 register indices
+enum X64Reg {
+  REG_RAX = 0,
+  REG_RCX,
+  REG_RDX,
+  REG_RSI,
+  REG_RDI,
+  REG_R8,
+  REG_R9,
+  REG_RBX,
+  REG_RBP,
+  REG_R10,
+  REG_R11,
+  REG_R12,
+  REG_R13,
+  REG_R14,
+  REG_R15,
+  REG_RSP,
+  REG_COUNT
+};
+
+class X64RegManager : public RegManager {
+public:
   X64RegManager();
 
   [[nodiscard]] temp::TempList *Registers() override;
@@ -26,7 +47,6 @@ class X64RegManager : public RegManager {
   [[nodiscard]] temp::Temp *StackPointer() override;
 
   [[nodiscard]] temp::Temp *ReturnValue() override;
-
 };
 
 } // namespace frame
