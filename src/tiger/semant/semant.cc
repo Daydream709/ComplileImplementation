@@ -494,7 +494,7 @@ type::Ty *ForExp::SemAnalyze(env::VEnvPtr venv, env::TEnvPtr tenv,
   venv->Enter(var_, new env::VarEntry(type::IntTy::Instance(), true));
 
   if (body_) {
-    body_->SemAnalyze(venv, tenv, labelcount, errormsg);
+    body_->SemAnalyze(venv, tenv, labelcount + 1, errormsg);
   }
 
   venv->EndScope();
