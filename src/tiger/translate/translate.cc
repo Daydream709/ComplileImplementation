@@ -343,6 +343,64 @@ tr::ExpAndTy *OpExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
         type::IntTy::Instance());
   }
 
+  if (oper_ == absyn::AND_OP) {
+    temp::Label *t = temp::LabelFactory::NewLabel();
+    temp::Label *f = temp::LabelFactory::NewLabel();
+    temp::Label *join = temp::LabelFactory::NewLabel();
+    temp::Temp *r = temp::TempFactory::NewTemp();
+
+    tr::Cx left_cx = left_ty->exp_->UnCx(errormsg);
+    left_cx.trues_.DoPatch(t);
+    left_cx.falses_.DoPatch(f);
+
+    tree::Stm *stm = new tree::SeqStm(
+        left_cx.stm_,
+        new tree::SeqStm(
+            new tree::LabelStm(t),
+            new tree::SeqStm(
+                new tree::MoveStm(new tree::TempExp(r), right_ty->exp_->UnEx()),
+                new tree::SeqStm(
+                    new tree::JumpStm(new tree::NameExp(join),
+                                      new std::vector<temp::Label *>({join})),
+                    new tree::SeqStm(
+                        new tree::LabelStm(f),
+                        new tree::SeqStm(
+                            new tree::MoveStm(new tree::TempExp(r),
+                                              new tree::ConstExp(0)),
+                            new tree::LabelStm(join)))))));
+    return new tr::ExpAndTy(new tr::ExExp(new tree::EseqExp(stm, new tree::TempExp(r))),
+                            type::IntTy::Instance());
+  }
+
+  if (oper_ == absyn::OR_OP) {
+    temp::Label *t = temp::LabelFactory::NewLabel();
+    temp::Label *f = temp::LabelFactory::NewLabel();
+    temp::Label *join = temp::LabelFactory::NewLabel();
+    temp::Temp *r = temp::TempFactory::NewTemp();
+
+    tr::Cx left_cx = left_ty->exp_->UnCx(errormsg);
+    left_cx.trues_.DoPatch(t);
+    left_cx.falses_.DoPatch(f);
+
+    tree::Stm *stm = new tree::SeqStm(
+        left_cx.stm_,
+        new tree::SeqStm(
+            new tree::LabelStm(t),
+            new tree::SeqStm(
+                new tree::MoveStm(new tree::TempExp(r), new tree::ConstExp(1)),
+                new tree::SeqStm(
+                    new tree::JumpStm(new tree::NameExp(join),
+                                      new std::vector<temp::Label *>({join})),
+                    new tree::SeqStm(
+                        new tree::LabelStm(f),
+                        new tree::SeqStm(
+                            new tree::MoveStm(new tree::TempExp(r),
+                                              right_ty->exp_->UnEx()),
+                            new tree::LabelStm(join)))))));
+    return new tr::ExpAndTy(new tr::ExExp(new tree::EseqExp(stm, new tree::TempExp(r))),
+                            type::IntTy::Instance());
+  }
+
   tree::RelOp relop;
   if (oper_ == absyn::EQ_OP) relop = tree::EQ_OP;
   else if (oper_ == absyn::NEQ_OP) relop = tree::NE_OP;
@@ -535,7 +593,7 @@ tr::ExpAndTy *WhileExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
   /* TODO: Put your lab5 code here */
   temp::Label *test_label = temp::LabelFactory::NewLabel();
   temp::Label *body_label = temp::LabelFactory::NewLabel();
-  temp::Label *done_label = temp::LabelFactory::NamedLabel("done");
+  temp::Label *done_label = temp::LabelFactory::NewLabel();
 
   tr::ExpAndTy *test_ty = test_->Translate(venv, tenv, level, done_label, errormsg);
   tr::ExpAndTy *body_ty = body_->Translate(venv, tenv, level, done_label, errormsg);
@@ -566,7 +624,7 @@ tr::ExpAndTy *ForExp::Translate(env::VEnvPtr venv, env::TEnvPtr tenv,
   /* TODO: Put your lab5 code here */
   temp::Label *loop_label = temp::LabelFactory::NewLabel();
   temp::Label *body_label = temp::LabelFactory::NewLabel();
-  temp::Label *done_label = temp::LabelFactory::NamedLabel("done");
+  temp::Label *done_label = temp::LabelFactory::NewLabel();
 
   tr::ExpAndTy *lo_ty = lo_->Translate(venv, tenv, level, label, errormsg);
   tr::ExpAndTy *hi_ty = hi_->Translate(venv, tenv, level, label, errormsg);

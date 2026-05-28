@@ -62,10 +62,13 @@ temp::TempList *ExpList::MunchArgs(assem::InstrList &instr_list, std::string_vie
       ++reg_it;
     } else {
       // Push onto stack (args beyond 6th)
+      int stack_offset = (i - NUM_ARG_REGS) * WORD_SIZE;
+      char buf[maxlen];
+      sprintf(buf, "movq `s0, %d(%%rsp)", stack_offset);
       instr_list.Append(new assem::OperInstr(
-          "pushq `s0",
-          new temp::TempList({reg_manager->StackPointer()}),
-          new temp::TempList({arg_temp, reg_manager->StackPointer()}),
+          buf,
+          nullptr,
+          new temp::TempList({arg_temp}),
           nullptr));
       arg_temps->Append(arg_temp);
     }
@@ -563,12 +566,22 @@ temp::Temp *ConstExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
 }
 
 temp::Temp *CallExp::Munch(assem::InstrList &instr_list, std::string_view fs) {
-  // Munch args first
-  temp::TempList *arg_temps = args_->MunchArgs(instr_list, fs);
-
   // Count stack args (beyond 6th)
   int nargs = args_->GetList().size();
   int stack_args = nargs > NUM_ARG_REGS ? nargs - NUM_ARG_REGS : 0;
+
+  if (stack_args > 0) {
+    char buf0[maxlen];
+    sprintf(buf0, "subq $%d, `d0", stack_args * WORD_SIZE);
+    instr_list.Append(new assem::OperInstr(
+        buf0,
+        new temp::TempList({reg_manager->StackPointer()}),
+        new temp::TempList({reg_manager->StackPointer()}),
+        nullptr));
+  }
+
+  // Munch args first
+  temp::TempList *arg_temps = args_->MunchArgs(instr_list, fs);
 
   // Collect caller-saved registers (they will be clobbered)
   temp::TempList *caller_saves = reg_manager->CallerSaves();

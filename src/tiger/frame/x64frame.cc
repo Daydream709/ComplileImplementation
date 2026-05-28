@@ -146,6 +146,7 @@ frame::Frame *NewFrame(temp::Label *name, std::list<bool> formals) {
   auto acc_it = access_list->begin();
   auto acc_end = access_list->end();
   --acc_end; // skip static link
+  int formal_idx = 0;
   while (acc_it != acc_end && reg_it != arg_regs->GetList().end()) {
     tree::Stm *move = new tree::MoveStm(
         (*acc_it)->ToExp(fp), new tree::TempExp(*reg_it));
@@ -155,6 +156,21 @@ frame::Frame *NewFrame(temp::Label *name, std::list<bool> formals) {
       shift = new tree::SeqStm(shift, move);
     ++acc_it;
     ++reg_it;
+    ++formal_idx;
+  }
+
+  int stack_offset = 8;
+  while (acc_it != acc_end) {
+    tree::Exp *stack_arg = new tree::MemExp(
+        new tree::BinopExp(tree::PLUS_OP, fp,
+                           new tree::ConstExp(stack_offset)));
+    tree::Stm *move = new tree::MoveStm((*acc_it)->ToExp(fp), stack_arg);
+    if (!shift)
+      shift = move;
+    else
+      shift = new tree::SeqStm(shift, move);
+    ++acc_it;
+    stack_offset += frame->word_size_;
   }
 
   frame->view_shift = shift;
