@@ -5,7 +5,6 @@
 
 namespace frame {
 
-// x86-64 register indices
 enum X64Reg {
   REG_RAX = 0,
   REG_RCX,
@@ -23,6 +22,7 @@ enum X64Reg {
   REG_R14,
   REG_R15,
   REG_RSP,
+  REG_FP,
   REG_COUNT
 };
 
@@ -48,6 +48,9 @@ public:
 
   [[nodiscard]] temp::Temp *ReturnValue() override;
 };
+
+tree::Exp *ExternalCall(std::string_view s, tree::ExpList *args);
+tree::Stm *ProcEntryExit1(frame::Frame *frame, tree::Stm *stm);
 
 } // namespace frame
 #endif // TIGER_COMPILER_X64FRAME_H

@@ -7,6 +7,7 @@
 #include "tiger/frame/temp.h"
 #include "tiger/liveness/liveness.h"
 #include "tiger/regalloc/color.h"
+#include <map>
 #include "tiger/util/graph.h"
 
 namespace ra {
@@ -27,7 +28,24 @@ public:
 };
 
 class RegAllocator {
-  /* TODO: Put your lab6 code here */
+public:
+  RegAllocator(frame::Frame *frame, std::unique_ptr<cg::AssemInstr> assem_instr)
+      : frame_(frame), assem_instr_(std::move(assem_instr)),
+        il_(assem_instr_->GetInstrList()) {}
+
+  void RegAlloc();
+  std::unique_ptr<Result> BuildAllocationResult();
+
+private:
+  frame::Frame *frame_;
+  std::unique_ptr<cg::AssemInstr> assem_instr_;
+  assem::InstrList *il_;
+  temp::Map *coloring_ = nullptr;
+  std::map<temp::Temp *, int> spill_offsets_;
+
+  temp::TempList *AllocatableRegs();
+  std::string SpillAddress(temp::Temp *temp);
+  void RewriteProgram(live::INodeListPtr spills);
 };
 
 } // namespace ra

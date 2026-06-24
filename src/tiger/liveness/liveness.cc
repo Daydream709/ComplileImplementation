@@ -1,8 +1,48 @@
 #include "tiger/liveness/liveness.h"
 
+#include <set>
+#include <vector>
+
 extern frame::RegManager *reg_manager;
 
 namespace live {
+namespace {
+
+std::set<temp::Temp *> ToSet(temp::TempList *list) {
+  std::set<temp::Temp *> result;
+  if (!list)
+    return result;
+  for (auto t : list->GetList())
+    result.insert(t);
+  return result;
+}
+
+temp::TempList *ToList(const std::set<temp::Temp *> &temps) {
+  auto *result = new temp::TempList();
+  for (auto t : temps)
+    result->Append(t);
+  return result;
+}
+
+bool SameSet(temp::TempList *a, temp::TempList *b) { return ToSet(a) == ToSet(b); }
+
+std::set<temp::Temp *> SetUnion(const std::set<temp::Temp *> &a,
+                                const std::set<temp::Temp *> &b) {
+  auto r = a;
+  r.insert(b.begin(), b.end());
+  return r;
+}
+
+std::set<temp::Temp *> SetDiff(const std::set<temp::Temp *> &a,
+                               const std::set<temp::Temp *> &b) {
+  std::set<temp::Temp *> r;
+  for (auto t : a)
+    if (!b.count(t))
+      r.insert(t);
+  return r;
+}
+
+} // namespace
 
 bool MoveList::Contain(INodePtr src, INodePtr dst) {
   return std::any_of(move_list_.cbegin(), move_list_.cend(),
@@ -44,11 +84,84 @@ MoveList *MoveList::Intersect(MoveList *list) {
 }
 
 void LiveGraphFactory::LiveMap() {
-  /* TODO: Put your lab6 code here */
+  std::vector<fg::FNodePtr> nodes;
+  for (auto node : flowgraph_->Nodes()->GetList()) {
+    nodes.push_back(node);
+    in_->Enter(node, new temp::TempList());
+    out_->Enter(node, new temp::TempList());
+  }
+
+  bool changed = true;
+  while (changed) {
+    changed = false;
+    for (auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
+      fg::FNodePtr node = *it;
+      auto old_in = in_->Look(node);
+      auto old_out = out_->Look(node);
+
+      std::set<temp::Temp *> out_set;
+      for (auto succ : node->Succ()->GetList())
+        out_set = SetUnion(out_set, ToSet(in_->Look(succ)));
+
+      auto use_set = ToSet(node->NodeInfo()->Use());
+      auto def_set = ToSet(node->NodeInfo()->Def());
+      auto in_set = SetUnion(use_set, SetDiff(out_set, def_set));
+
+      auto *new_in = ToList(in_set);
+      auto *new_out = ToList(out_set);
+      if (!SameSet(old_in, new_in) || !SameSet(old_out, new_out))
+        changed = true;
+      in_->Set(node, new_in);
+      out_->Set(node, new_out);
+    }
+  }
 }
 
 void LiveGraphFactory::InterfGraph() {
-  /* TODO: Put your lab6 code here */
+  auto get_node = [this](temp::Temp *temp) -> INodePtr {
+    INodePtr node = temp_node_map_->Look(temp);
+    if (!node) {
+      node = live_graph_.interf_graph->NewNode(temp);
+      temp_node_map_->Enter(temp, node);
+    }
+    return node;
+  };
+
+  for (auto reg : reg_manager->Registers()->GetList())
+    get_node(reg);
+  for (auto reg : reg_manager->CallerSaves()->GetList())
+    get_node(reg);
+
+  for (auto flow_node : flowgraph_->Nodes()->GetList()) {
+    assem::Instr *instr = flow_node->NodeInfo();
+    auto def_set = ToSet(instr->Def());
+    auto use_set = ToSet(instr->Use());
+    auto live_set = ToSet(out_->Look(flow_node));
+    bool is_move = dynamic_cast<assem::MoveInstr *>(instr) != nullptr;
+
+    for (auto t : def_set)
+      get_node(t);
+    for (auto t : use_set)
+      get_node(t);
+    for (auto t : live_set)
+      get_node(t);
+
+    if (is_move && !def_set.empty() && !use_set.empty()) {
+      live_graph_.moves->Append(get_node(*use_set.begin()), get_node(*def_set.begin()));
+      live_set = SetDiff(live_set, use_set);
+    }
+
+    for (auto def : def_set) {
+      INodePtr def_node = get_node(def);
+      for (auto live : live_set) {
+        if (def == live)
+          continue;
+        INodePtr live_node = get_node(live);
+        live_graph_.interf_graph->AddEdge(def_node, live_node);
+        live_graph_.interf_graph->AddEdge(live_node, def_node);
+      }
+    }
+  }
 }
 
 void LiveGraphFactory::Liveness() {

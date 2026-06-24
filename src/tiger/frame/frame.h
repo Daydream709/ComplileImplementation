@@ -80,17 +80,24 @@ class Frame {
   /* TODO: Put your lab5 code here */
 public:
   int word_size_;
-  int offset_;
+  int outgoing_size_;
   temp::Label *name_;
+  temp::Label *frameLabel_;
   std::list<frame::Access *> *formals_;
+  std::list<frame::Access *> *locals_;
+  int local_offset_;
 
-  Frame(int word_size, int offset, temp::Label *name,
+  Frame(int word_size, int outgoing_size, temp::Label *name,
         std::list<frame::Access *> *formals)
-      : word_size_(word_size), offset_(offset), name_(name),
-        formals_(formals) {}
+      : word_size_(word_size), outgoing_size_(outgoing_size), name_(name),
+        frameLabel_(name), formals_(formals),
+        locals_(new std::list<frame::Access *>()), local_offset_(0) {}
 
   virtual ~Frame() = default;
   [[nodiscard]] virtual std::string GetLabel() const = 0;
+  std::string GetFrameLabel() const {
+    return frameLabel_ ? frameLabel_->Name() : "";
+  }
   [[nodiscard]] virtual temp::Label *Name() const = 0;
   [[nodiscard]] virtual std::list<frame::Access *> *Formals() const = 0;
   virtual frame::Access *AllocLocal(bool escape) = 0;
@@ -153,6 +160,7 @@ Frame *NewFrame(temp::Label *name, std::list<bool> formals);
 tree::Exp *ExternalCall(std::string_view s, tree::ExpList *args);
 tree::Stm *ProcEntryExit1(Frame *frame, tree::Stm *stm);
 assem::Proc *ProcEntryExit3(Frame *frame, assem::InstrList *body);
+assem::Proc *BuildCompleteProcedure(Frame *frame, assem::InstrList *body);
 /* End for lab5 code */
 
 } // namespace frame
